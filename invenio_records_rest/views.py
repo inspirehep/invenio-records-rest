@@ -800,9 +800,8 @@ class RecordResource(ContentNegotiatedMethodView):
         :param record: Record object.
         :returns: The requested record.
         """
-        etag = str(record.revision_id)
-        self.check_etag(str(record.revision_id), weak=True)
-        self.check_if_modified_since(record.updated, etag=etag)
+
+        self.check_if_modified_since(record.updated)
 
         return self.make_response(
             pid, record, links_factory=self.links_factory
