@@ -76,7 +76,7 @@ install_requires = [
     'ftfy>=4.4.3',
     'invenio-base>=1.2.2',
     'invenio-pidstore>=1.2.0',
-    'invenio-records>=1.0.0',
+    'invenio-records==1.3.2',
     'invenio-rest==1.1.3',
     'invenio-indexer>=1.1.0',
     'invenio-i18n>=1.2.0',
