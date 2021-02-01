@@ -54,7 +54,7 @@ def test_item_get_etag(app, test_records):
         # Test request via last-modified.
         res = client.get(
             record_url(pid), headers={'If-Modified-Since': last_modified})
-        assert res.status_code == 304
+        assert res.status_code == 200
 
 
 def test_item_get_norecord(app, test_records):
