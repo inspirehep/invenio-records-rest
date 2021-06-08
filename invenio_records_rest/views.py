@@ -870,6 +870,9 @@ class RecordResource(ContentNegotiatedMethodView):
         :param record: Record object.
         :returns: The modified record.
         """
+        if not request.if_match:
+            abort(400, "`IF-Match` header is missing")
+
         if request.mimetype not in self.loaders:
             raise UnsupportedMediaRESTError(request.mimetype)
 

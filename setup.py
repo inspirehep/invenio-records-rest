@@ -40,8 +40,8 @@ extras_require = {
         'invenio-search[elasticsearch7]>={}'.format(invenio_search_version),
     ],
     'citeproc': [
-        'citeproc-py>=0.3.0',
-        'citeproc-py-styles>=0.1.0',
+        'citeproc-py==0.3.0',
+        'citeproc-py-styles==0.1.0',
     ],
     'datacite': [
         'datacite>=1.0.1',
@@ -74,6 +74,7 @@ install_requires = [
     'attrs>=17.4.0',
     'bleach>=2.1.3',
     'ftfy>=4.4.3',
+    'werkzeug==1.0.1',
     'invenio-base>=1.2.2',
     'invenio-pidstore>=1.2.0',
     'invenio-records==1.3.2',
