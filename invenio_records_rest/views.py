@@ -877,6 +877,9 @@ class RecordResource(ContentNegotiatedMethodView):
         if data is None:
             raise InvalidDataRESTError()
 
+        if not request.if_match:
+            abort(400)
+
         self.check_etag(str(record.revision_id), weak=True)
 
         record.clear()
