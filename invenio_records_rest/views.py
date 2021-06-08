@@ -878,7 +878,7 @@ class RecordResource(ContentNegotiatedMethodView):
             raise InvalidDataRESTError()
 
         if not request.if_match:
-            abort(400)
+            abort(400, "`IF-Match` header is missing")
 
         self.check_etag(str(record.revision_id), weak=True)
 

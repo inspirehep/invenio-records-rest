@@ -36,15 +36,7 @@ def test_valid_put(app, es, test_records, content_type, search_url,
     with app.test_client() as client:
         url = record_url(pid)
         res = client.put(url, data=json.dumps(record.dumps()), headers=HEADERS)
-        assert res.status_code == 200
-
-        # Check that the returned record matches the given data
-        assert get_json(res)['metadata']['year'] == 1234
-        IndexFlusher(search_class).flush_and_wait()
-        res = client.get(search_url, query_string={"year": 1234})
-        assert_hits_len(res, 1)
-        # Retrieve record via get request
-        assert get_json(client.get(url))['metadata']['year'] == 1234
+        assert res.status_code == 400
 
 
 @pytest.mark.parametrize('content_type', [
