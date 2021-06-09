@@ -68,7 +68,8 @@ def test_marshmallow_load(app, db, es, test_data, search_url, search_class):
     with app.test_client() as client:
         HEADERS = [
             ('Accept', 'application/json'),
-            ('Content-Type', 'application/json')
+            ('Content-Type', 'application/json'),
+            ('If-Match', '"0"'),
         ]
 
         # Create record
