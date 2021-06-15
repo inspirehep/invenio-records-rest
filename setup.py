@@ -74,7 +74,7 @@ install_requires = [
     'attrs>=17.4.0',
     'bleach>=2.1.3',
     'ftfy>=4.4.3',
-    'werkzeug==1.0.1',
+    'werkzeug<2.0.0',
     'invenio-base>=1.2.2',
     'invenio-pidstore>=1.2.0',
     'invenio-records==1.3.2',
