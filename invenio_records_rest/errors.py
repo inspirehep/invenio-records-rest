@@ -17,6 +17,7 @@ from __future__ import absolute_import, print_function
 
 from flask import request
 from invenio_rest.errors import FieldError, RESTException, RESTValidationError
+from werkzeug.http import http_date
 
 
 #
@@ -203,3 +204,39 @@ class UnhandledElasticsearchError(RESTException):
     code = 500
     description = 'An internal server error occurred when handling the ' \
                   'request.'
+
+
+class SameContentException(RESTException):
+    """304 Same Content exception.
+
+    Exception thrown when request is GET or HEAD, ETag is If-None-Match and
+    one or more of the ETag values match.
+    """
+
+    code = 304
+    """HTTP Status code."""
+
+    description = 'Same Content.'
+    """Error description."""
+
+    def __init__(self, etag, last_modified=None, **kwargs):
+        """Constructor.
+
+        :param etag: matching etag
+        :param last_modified: The last modefied date. (Default: ``None``)
+        """
+        super(SameContentException, self).__init__(**kwargs)
+        self.etag = etag
+        self.last_modified = last_modified
+
+    def get_response(self, environ=None):
+        """Get a list of headers."""
+        response = super(SameContentException, self).get_response(
+            environ=environ
+        )
+        response.cache_control.no_cache = True
+        if self.etag is not None:
+            response.set_etag(self.etag)
+        if self.last_modified is not None:
+            response.headers['Last-Modified'] = http_date(self.last_modified)
+        return response
