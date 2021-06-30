@@ -40,7 +40,7 @@ from werkzeug.exceptions import BadRequest
 from ._compat import wrap_links_factory
 from .errors import InvalidDataRESTError, InvalidQueryRESTError, \
     JSONSchemaValidationError, PatchJSONFailureRESTError, \
-    PIDResolveRESTError, SearchPaginationRESTError, \
+    PIDResolveRESTError, SameContentException, SearchPaginationRESTError, \
     SuggestMissingContextRESTError, SuggestNoCompletionsRESTError, \
     UnhandledElasticsearchError, UnsupportedMediaRESTError
 from .links import default_links_factory
@@ -890,6 +890,41 @@ class RecordResource(ContentNegotiatedMethodView):
             self.indexer_class().index(record)
         return self.make_response(
             pid, record, links_factory=self.links_factory)
+
+    def check_etag(self, etag, weak=False):
+        """Validate the given ETag with current request conditions.
+
+        Compare the given ETag to the ones in the request header If-Match
+        and If-None-Match conditions.
+        The result is unspecified for requests having If-Match and
+        If-None-Match being both set.
+        :param str etag: The ETag of the current resource. For PUT and PATCH
+            it is the one before any modification of the resource. This ETag
+            will be tested with the Accept header conditions. The given ETag
+            should not be quoted.
+        :raises werkzeug.exceptions.PreconditionFailed: If the
+            condition is not met.
+        :raises invenio_rest.errors.SameContentException: If the
+            the request is GET or HEAD and the If-None-Match condition is not
+            met.
+        """
+        # bool(:py:class:`werkzeug.datastructures.ETags`) is not consistent
+        # in Python 3. bool(Etags()) == True even though it is empty.
+        if len(request.if_match.as_set(include_weak=weak)) > 0 or \
+                request.if_match.star_tag:
+            contains_etag = (request.if_match.contains_weak(etag) if weak
+                             else request.if_match.contains(etag))
+            if not contains_etag and '*' not in request.if_match:
+                abort(412)
+        if len(request.if_none_match.as_set(include_weak=weak)) > 0 or \
+                request.if_none_match.star_tag:
+            contains_etag = (request.if_none_match.contains_weak(etag) if weak
+                             else request.if_none_match.contains(etag))
+            if contains_etag or '*' in request.if_none_match:
+                if request.method in ('GET', 'HEAD'):
+                    raise SameContentException(etag)
+                else:
+                    abort(412)
 
 
 class SuggestResource(MethodView):
