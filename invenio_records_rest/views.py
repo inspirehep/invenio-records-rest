@@ -915,7 +915,14 @@ class RecordResource(ContentNegotiatedMethodView):
             contains_etag = (request.if_match.contains_weak(etag) if weak
                              else request.if_match.contains(etag))
             if not contains_etag and '*' not in request.if_match:
-                abort(412)
+                abort(
+                    412,
+                    (
+                        f"The record version {etag} "
+                        f"is not matching the current version "
+                        f"{', '.join(set(request.if_match))}"
+                    )
+                )
         if len(request.if_none_match.as_set(include_weak=weak)) > 0 or \
                 request.if_none_match.star_tag:
             contains_etag = (request.if_none_match.contains_weak(etag) if weak
@@ -924,7 +931,14 @@ class RecordResource(ContentNegotiatedMethodView):
                 if request.method in ('GET', 'HEAD'):
                     raise SameContentException(etag)
                 else:
-                    abort(412)
+                    abort(
+                        412,
+                        (
+                            f"The record version {etag} "
+                            f"is not matching the current version "
+                            f"{', '.join(set(request.if_match))}"
+                        )
+                    )
 
 
 class SuggestResource(MethodView):
