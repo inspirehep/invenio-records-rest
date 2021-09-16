@@ -46,7 +46,6 @@ def test_page_size(app, indexed_records, search_url):
         # Limit records
         res = client.get(search_url, query_string=dict(page=1, size=2))
         assert_hits_len(res, 2)
-
         # All records
         res = client.get(search_url, query_string=dict(page=1, size=10))
         assert_hits_len(res, len(indexed_records))
@@ -61,6 +60,24 @@ def test_page_size(app, indexed_records, search_url):
         assert 'message' in get_json(res)
 
         res = client.get(search_url, query_string=dict(page=101, size=100))
+        assert res.status_code == 400
+        assert 'message' in get_json(res)
+
+
+@pytest.mark.parametrize('app', [dict(
+    records_rest_endpoints=dict(
+        recid=dict(
+            max_result_window=2,
+        )
+    ),
+)], indirect=['app'])
+def test_next_in_max_page(app, indexed_records, search_url):
+    """Test page and size parameters."""
+    with app.test_client() as client:
+        res = client.get(search_url, query_string=dict(page=1, size=2))
+        assert "next" in res.json['links']
+
+        res = client.get(res.json['links']['next'])
         assert res.status_code == 400
         assert 'message' in get_json(res)
 
@@ -373,7 +390,7 @@ def test_max_result_window_valid_params(app, indexed_records, search_url):
         assert_hits_len(res, 1)
         data = get_json(res)
         assert 'self' in data['links']
-        assert 'next' not in data['links']
+        assert 'next' in data['links']
         assert 'prev' in data['links']
 
 
