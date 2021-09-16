@@ -641,7 +641,7 @@ class RecordsListResource(ContentNegotiatedMethodView):
         _link('self')
         if pagination['from_idx'] >= 1:
             _link('prev')
-        if pagination['to_idx'] < min(total, self.max_result_window):
+        if pagination['to_idx'] < total:
             _link('next')
 
         return self.make_response(
