@@ -231,5 +231,5 @@ class PIDPathConverter(PIDConverter, PathConverter):
 def set_headers_for_record_caching_and_concurrency(response, record):
     response.set_etag(str(record.revision_id), weak=True)
     response.last_modified = record.updated
-    response.headers['Cache-Control'] = "must-revalidate"
+    response.headers['Cache-Control'] = "no-cache"
     response.vary = "Accept,Accept-Encoding,Accept-Language"
