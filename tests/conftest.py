@@ -270,7 +270,8 @@ def record_indexer_receiver(sender, json=None, record=None, index=None,
         suggest_title['input'] = [json['title'], ]
         json['suggest_byyear'] = suggest_byyear
         json['suggest_title'] = suggest_title
-
+        if ES_VERSION[0] > 6:
+            json['title_search_as_you_type'] = json['title']
     return json
 
 

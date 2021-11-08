@@ -82,6 +82,7 @@ install_requires = [
     'invenio-indexer>=1.1.0',
     'invenio-i18n>=1.2.0',
     'python-dateutil>=2.4.2',
+    'jsonschema>=2.6.0,<3.0',
 ]
 
 packages = find_packages()
