@@ -17,6 +17,7 @@ from functools import partial, wraps
 
 from elasticsearch import VERSION as ES_VERSION
 from elasticsearch.exceptions import RequestError
+from elasticsearch_dsl.query import Q
 from flask import Blueprint, abort, current_app, jsonify, make_response, \
     request, url_for
 from flask.views import MethodView
@@ -182,7 +183,8 @@ def create_url_rules(endpoint, list_route=None, item_route=None,
                      default_media_type=None,
                      max_result_window=None, use_options_view=True,
                      search_factory_imp=None, links_factory_imp=None,
-                     suggesters=None, default_endpoint_prefix=None):
+                     suggesters=None, default_endpoint_prefix=None,
+                     search_as_you_type=None):
     """Create Werkzeug URL rules.
 
     :param endpoint: Name of endpoint.
@@ -235,6 +237,7 @@ def create_url_rules(endpoint, list_route=None, item_route=None,
     :param search_factory_imp: Factory to parse queries.
     :param links_factory_imp: Factory for record links generation.
     :param suggesters: Suggester fields configuration.
+    :param search_as_you_type: `search-as-you-type` fields configuration.
 
     :returns: a list of dictionaries with can each be passed as keywords
         arguments to ``Blueprint.add_url_rule``.
@@ -352,6 +355,16 @@ def create_url_rules(endpoint, list_route=None, item_route=None,
         views.append(dict(
             rule=list_route + '_suggest',
             view_func=suggest_view
+        ))
+    if ES_VERSION[0] > 6 and search_as_you_type:
+        search_as_you_type_view = SearchAsYouTypeResource.as_view(
+            SearchAsYouTypeResource.view_name.format(endpoint),
+            search_as_you_type=search_as_you_type,
+            search_class=search_class
+        )
+        views.append(dict(
+            rule=list_route + '_search_as_you_type',
+            view_func=search_as_you_type_view
         ))
 
     if use_options_view:
@@ -939,6 +952,65 @@ class RecordResource(ContentNegotiatedMethodView):
                             f"{', '.join(set(request.if_match))}"
                         )
                     )
+
+
+class SearchAsYouTypeResource(MethodView):
+    """Resource for `search_as_you_type` searches."""
+
+    view_name = '{0}_search_as_you_type'
+
+    def __init__(self, search_as_you_type, search_class=None, **kwargs):
+        """Constructor."""
+        self.search_as_you_type = search_as_you_type
+        self.search_as_you_type_fields = set(self.search_as_you_type.keys())
+        self.search_class = search_class
+
+    def get(self, **kwargs):
+        """Get results from `search_as_you_type`."""
+        request_fields = set(request.values.keys())
+        matched_search_as_you_type_fields = (
+            self.search_as_you_type_fields & request_fields
+        )
+
+        if not matched_search_as_you_type_fields:
+            raise SuggestNoCompletionsRESTError(
+                ', '.join(sorted(self.search_as_you_type.keys())))
+
+        search_class = self.search_class()
+
+        matched_search_as_you_type_fields = \
+            matched_search_as_you_type_fields.pop()
+        value = request.values.get(matched_search_as_you_type_fields)
+        options = copy.deepcopy(
+            self.search_as_you_type[matched_search_as_you_type_fields])
+
+        search_field = options.pop('field')
+        source = options.pop('_source')
+        size = request.values.get('size', type=int) or options.pop('size', 10)
+
+        response = search_class.query(
+            Q(
+                {
+                    "multi_match": {
+                        "query": value,
+                        "type": "bool_prefix",
+                        "fields": [
+                            "{}".format(search_field),
+                            "{}._2gram".format(search_field),
+                            "{}._3gram".format(search_field)
+                        ]
+                    }
+                }
+            )
+        ).params(_source=source, size=size).execute().to_dict()
+
+        result = dict()
+        result[matched_search_as_you_type_fields] = [dict(
+            length=response['hits']['total']['value'],
+            text=value,
+            options=response['hits']['hits']
+        )]
+        return make_response(jsonify(result))
 
 
 class SuggestResource(MethodView):
