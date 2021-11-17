@@ -984,9 +984,20 @@ class SearchAsYouTypeResource(MethodView):
         options = copy.deepcopy(
             self.search_as_you_type[matched_search_as_you_type_fields])
 
-        search_field = options.pop('field')
+        search_fields = options.pop('fields')
         source = options.pop('_source')
         size = request.values.get('size', type=int) or options.pop('size', 10)
+
+        query_fields = []
+        for configuration in search_fields:
+            field = configuration['field']
+            boost = configuration.get('boost', 1)
+
+            query_fields.extend([
+                "{}^{}".format(field, boost),
+                "{}._2gram^{}".format(field, boost),
+                "{}._3gram^{}".format(field, boost)
+            ])
 
         response = search_class.query(
             Q(
@@ -994,11 +1005,7 @@ class SearchAsYouTypeResource(MethodView):
                     "multi_match": {
                         "query": value,
                         "type": "bool_prefix",
-                        "fields": [
-                            "{}".format(search_field),
-                            "{}._2gram".format(search_field),
-                            "{}._3gram".format(search_field)
-                        ]
+                        "fields": query_fields
                     }
                 }
             )

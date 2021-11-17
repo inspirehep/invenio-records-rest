@@ -24,14 +24,24 @@ from flask import url_for
             endpoint=dict(
                 search_as_you_type=dict(
                     text=dict(
-                        field="title_search_as_you_type",
-                        _source=["title", "control_number"]
+                        fields=[
+                            {
+                                "field": "title_search_as_you_type",
+                                "boost": "1"
+                            }
+                        ],
+                        _source=["title", "control_number"],
                     ),
                     text_with_size=dict(
-                        field="title_search_as_you_type",
+                        fields=[
+                            {
+                                "field": "title_search_as_you_type",
+                                "boost": "1"
+                            }
+                        ],
                         _source=["title", "control_number"],
                         size=1,
-                    )
+                    ),
                 ),
             )
         )
@@ -44,12 +54,10 @@ def test_valid_search_as_you_type(app, db, es, indexed_records):
         # Valid simple completion search_as_you_type
         res = client.get(
             url_for("invenio_records_rest.recid_search_as_you_type"),
-            query_string={"text": "back"}
+            query_string={"text": "back"},
         )
         assert res.status_code == 200
-        data = json.loads(
-            res.get_data(as_text=True)
-        )
+        data = json.loads(res.get_data(as_text=True))
 
         assert len(data["text"][0]["options"]) == 2
         options = data["text"][0]["options"]
