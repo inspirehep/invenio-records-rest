@@ -47,7 +47,7 @@ from .errors import InvalidDataRESTError, InvalidQueryRESTError, \
 from .links import default_links_factory
 from .proxies import current_records_rest
 from .query import es_search_factory
-from .utils import obj_or_import_string
+from .utils import get_record_validation_errors, obj_or_import_string
 
 lt_es7 = ES_VERSION[0] < 7
 
@@ -896,8 +896,12 @@ class RecordResource(ContentNegotiatedMethodView):
         self.check_etag(str(record.revision_id), weak=True)
 
         record.clear()
-        record.update(data)
-        record.commit()
+        try:
+            record.update(data)
+            record.commit()
+        except ValidationError:
+            errors = get_record_validation_errors(record)
+            raise JSONSchemaValidationError(errors=errors)
         db.session.commit()
         if self.indexer_class:
             self.indexer_class().index(record)

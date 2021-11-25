@@ -153,22 +153,38 @@ def test_invalid_put(app, es, test_records, charset, search_url):
         assert res.status_code == 412
 
 
-@mock.patch('invenio_records.api.Record.validate', _mock_validate_fail)
-@pytest.mark.parametrize('content_type', [
-    'application/json', 'application/json;charset=utf-8'
-])
-def test_validation_error(app, test_records, content_type):
+@mock.patch("invenio_records.api.Record.validate", _mock_validate_fail)
+@mock.patch(
+    "invenio_records_rest.views.get_record_validation_errors",
+    return_value=[{'path': ['authors'], 'message': "it's wrong"}]
+)
+@pytest.mark.parametrize(
+    "content_type", ["application/json", "application/json;charset=utf-8"]
+)
+def test_validation_error(
+    mock_validation_errors,
+    app,
+    test_records,
+    content_type
+):
     """Test when record validation fail."""
-    HEADERS = [
-        ('Accept', 'application/json'),
-        ('Content-Type', content_type)
-    ]
+    HEADERS = [("Accept", "application/json"), ("Content-Type", content_type)]
 
     pid, record = test_records[0]
 
-    record['year'] = 1234
-
+    record["year"] = 1234
+    record["authors"] = [{"full_name": 0000}]
     with app.test_client() as client:
         url = record_url(pid)
-        res = client.put(url, data=json.dumps(record.dumps()), headers=HEADERS)
+        res = client.put(
+            url,
+            data=json.dumps(record.dumps()),
+            headers={
+                "Content-Type": "application/json",
+                "If-Match": '"{0}"'.format(record.revision_id),
+            },
+        )
         assert res.status_code == 400
+        assert "errors" in res.json
+        assert "path" in res.json["errors"][0]
+        assert "message" in res.json["errors"][0]
