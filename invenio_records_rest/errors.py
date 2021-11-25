@@ -194,8 +194,18 @@ class JSONSchemaValidationError(RESTValidationError):
     def __init__(self, error=None, **kwargs):
         """Initialize exception."""
         super(RESTValidationError, self).__init__(**kwargs)
+        self.errors = kwargs.get('errors')
         self.description = 'Validation error: {0}.'.format(
             error.message if error else '')
+
+    def get_errors(self):
+        """Get errors.
+
+        :returns: A list containing a dictionary representing the errors.
+        """
+        if self.errors:
+            return self.errors
+        return super(RESTValidationError, self).get_errors()
 
 
 class UnhandledElasticsearchError(RESTException):

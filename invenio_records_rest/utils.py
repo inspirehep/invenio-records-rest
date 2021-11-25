@@ -22,7 +22,6 @@ from werkzeug.utils import cached_property, import_string
 from .errors import PIDDeletedRESTError, PIDDoesNotExistRESTError, \
     PIDMissingObjectRESTError, PIDRedirectedRESTError, \
     PIDUnregisteredRESTError
-from .proxies import current_records_rest
 
 
 def build_default_endpoint_prefixes(records_rest_endpoints):
@@ -233,3 +232,10 @@ def set_headers_for_record_caching_and_concurrency(response, record):
     response.last_modified = record.updated
     response.headers['Cache-Control'] = "no-cache"
     response.vary = "Accept,Accept-Encoding,Accept-Language"
+
+
+def get_record_validation_errors(record):
+    try:
+        return record.get_validation_errors()
+    except AttributeError:
+        return []
