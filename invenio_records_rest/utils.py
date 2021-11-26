@@ -236,6 +236,13 @@ def set_headers_for_record_caching_and_concurrency(response, record):
 
 def get_record_validation_errors(record):
     try:
-        return record.get_validation_errors()
+        errors = record.get_validation_errors()
+        error_messages = [
+            {
+                'path': [str(err) for err in error.absolute_path],
+                'message': str(error.message),
+            } for error in errors
+        ]
+        return error_messages
     except AttributeError:
         return []
