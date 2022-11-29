@@ -424,3 +424,16 @@ def test_max_result_window_invalid_params(app, indexed_records, search_url):
         assert res.status_code == 400
         assert ('Maximum number of 3 results have been reached.' in
                 res.get_data(as_text=True))
+
+
+def test_search_handlers_malformated_query_return_json_response(
+    app, indexed_records, search_url
+):
+    with app.test_client() as client:
+        resp = client.get(
+            f"{search_url}?sort=mostrecent&size=25&page=1&status=open&q=^&12#$"
+        )
+        assert resp.status_code == 400
+        assert resp.json[
+            "message"
+        ] == "The syntax of the search query is invalid."

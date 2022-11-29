@@ -89,14 +89,20 @@ def create_error_handlers(blueprint, error_handlers_registry=None):
     @blueprint.errorhandler(ValidationError)
     def validation_error(error):
         """Catch validation errors."""
-        return JSONSchemaValidationError(error=error).get_response()
+        error = JSONSchemaValidationError(error=error)
+        exception_body = {
+            "status_code": error.code,
+            "message": error.description
+        }
+        return make_response(jsonify(exception_body), error.code)
 
     @blueprint.errorhandler(RequestError)
     def elasticsearch_badrequest_error(error):
         """Catch errors of ElasticSearch."""
         handlers = current_app.config[
-            'RECORDS_REST_ELASTICSEARCH_ERROR_HANDLERS']
-        cause_types = {c['type'] for c in error.info['error']['root_cause']}
+            "RECORDS_REST_ELASTICSEARCH_ERROR_HANDLERS"
+        ]
+        cause_types = {c["type"] for c in error.info["error"]["root_cause"]}
 
         for cause_type, handler in handlers.items():
             if cause_type in cause_types:
@@ -105,19 +111,29 @@ def create_error_handlers(blueprint, error_handlers_registry=None):
         # Default exception for unhandled errors
         exception = UnhandledElasticsearchError()
         current_app.logger.exception(error)  # Log the original stacktrace
-        return exception.get_response()
+        exception_body = {
+            "status_code": exception.code,
+            "message": exception.description,
+        }
+        return make_response(jsonify(exception_body), exception.code)
 
     for exc_or_code, handlers in error_handlers_registry.items():
         # Build full endpoint names and resolve handlers
         handlers = {
-            '.'.join([blueprint.name, view_name]): obj_or_import_string(func)
+            ".".join([blueprint.name, view_name]): obj_or_import_string(func)
             for view_name, func in handlers.items()
         }
 
         def dispatch_handler(error):
             def default_handler(e):
-                raise e
+                exception_body = {
+                    "status_code": e.code,
+                    "message": e.description
+                }
+                return make_response(jsonify(exception_body), error.code)
+
             return handlers.get(request.endpoint, default_handler)(error)
+
         blueprint.register_error_handler(exc_or_code, dispatch_handler)
 
     return blueprint
