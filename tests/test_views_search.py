@@ -134,28 +134,14 @@ def test_page_links(app, indexed_records, search_url):
         res = client.get(search_url, query_string=dict(size=1, page=1))
         assert_hits_len(res, 1)
 
-        def parse_link_header(response):
-            """Parse the links from a REST response's HTTP header."""
-            return {
-                k: v for (k, v) in
-                map(lambda s: re.findall(r'<(.*)>; rel="(.*)"', s)[0][::-1],
-                    [x for x in res.headers['Link'].split(', ')])
-            }
-
-        links = parse_link_header(res)
         data = get_json(res)['links']
-        assert 'self' in data \
-               and 'self' in links \
-               and data['self'] == links['self']
-        assert 'next' in data \
-               and 'next' in links \
-               and data['next'] == links['next']
-        assert 'prev' not in data \
-               and 'prev' not in links
+        assert 'self' in data
+        assert 'next' in data
+        assert 'prev' not in data
 
         # Assert next URL before calling it
-        first_url = links['self']
-        next_url = links['next']
+        first_url = data['self']
+        next_url = data['next']
         parsed_url = parse_url(next_url)
         assert parsed_url['qs']['size'] == ['1']
         assert parsed_url['qs']['page'] == ['2']
@@ -163,10 +149,10 @@ def test_page_links(app, indexed_records, search_url):
         # Access next URL
         res = client.get(to_relative_url(next_url))
         assert_hits_len(res, 1)
-        links = parse_link_header(res)
-        assert links['self'] == next_url
-        assert 'next' in links
-        assert 'prev' in links and links['prev'] == first_url
+        data = get_json(res)['links']
+        assert data['self'] == next_url
+        assert 'next' in data
+        assert 'prev' in data and data['prev'] == first_url
 
 
 def test_query(app, indexed_records, search_url):
