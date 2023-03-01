@@ -36,11 +36,17 @@ def test_record_responsify(app):
 
     pid = PersistentIdentifier(pid_type='rec', pid_value='1')
     rec = Record({'title': 'test'})
-    resp = rec_serializer(pid, rec, headers=[('X-Test', 'test')])
+    resp = rec_serializer(
+        pid,
+        rec,
+        headers=[('X-Test', 'test')],
+        links_factory=lambda x: str(x)
+    )
     assert resp.status_code == 200
     assert resp.content_type == 'application/x-custom'
     assert resp.get_data(as_text=True) == "1:test"
     assert resp.headers['X-Test'] == 'test'
+    assert not resp.headers.get('Link')
 
     resp = rec_serializer(pid, rec, code=201)
     assert resp.status_code == 201
@@ -62,6 +68,7 @@ def test_search_responsify(app):
     assert resp.get_data(as_text=True) == "5"
 
     resp = search_serializer(
-        fetcher, result, code=201, headers=[('X-Test', 'test')])
+        fetcher, result, code=201, headers=[('X-Test', 'test')], links="test")
     assert resp.status_code == 201
     assert resp.headers['X-Test'] == 'test'
+    assert not resp.headers.get("Link")

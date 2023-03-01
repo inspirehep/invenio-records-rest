@@ -37,9 +37,6 @@ def record_responsify(serializer, mimetype):
         if headers is not None:
             response.headers.extend(headers)
 
-        if links_factory is not None:
-            add_link_header(response, links_factory(pid))
-
         return response
 
     return view
@@ -62,9 +59,6 @@ def search_responsify(serializer, mimetype):
         response.status_code = code
         if headers is not None:
             response.headers.extend(headers)
-
-        if links is not None:
-            add_link_header(response, links)
 
         return response
 

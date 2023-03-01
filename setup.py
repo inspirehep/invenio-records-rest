@@ -22,6 +22,9 @@ tests_require = [
     'invenio-indexer>=1.0.0',
     'invenio-config>=1.0.2',
     'pytest-invenio>=1.2.1',
+    'pydocstyle<=6.1.1',
+    'jsonref==0.2',
+    'jsonresolver==0.2.1'
 ]
 
 invenio_search_version = '1.2.3,<1.3.0'
@@ -48,6 +51,7 @@ extras_require = {
     ],
     'docs': [
         'Sphinx>=3',
+        'MarkupSafe==2.0.1'
     ],
     'dublincore': [
         'dcxml>=0.1.0',
