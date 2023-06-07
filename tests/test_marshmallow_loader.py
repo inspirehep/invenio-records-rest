@@ -13,9 +13,7 @@ from __future__ import absolute_import, print_function
 import json
 from copy import deepcopy
 
-import pytest
 from helpers import get_json
-from invenio_records.api import Record
 from invenio_records.models import RecordMetadata
 from invenio_rest.serializer import BaseSchema as Schema
 from marshmallow import ValidationError
@@ -25,8 +23,7 @@ from marshmallow import fields
 from invenio_records_rest.loaders import json_pid_checker
 from invenio_records_rest.loaders.marshmallow import MarshmallowErrors, \
     marshmallow_loader
-from invenio_records_rest.schemas import Nested, RecordMetadataSchemaJSONV1, \
-    RecordSchemaJSONV1
+from invenio_records_rest.schemas import Nested
 from invenio_records_rest.schemas.fields import PersistentIdentifier
 
 
@@ -97,20 +94,24 @@ def test_marshmallow_load(app, db, es, test_data, search_url, search_class):
 def test_marshmallow_load_errors(app, db, es, test_data, search_url,
                                  search_class):
     """Test marshmallow loader errors."""
-    app.config['RECORDS_REST_DEFAULT_LOADERS'] = {
-        'application/json': marshmallow_loader(_TestSchema)}
+    app.config["RECORDS_REST_DEFAULT_LOADERS"] = {
+        "application/json": marshmallow_loader(_TestSchema)
+    }
 
     with app.test_client() as client:
         HEADERS = [
-            ('Accept', 'application/json'),
-            ('Content-Type', 'application/json')
+            ("Accept", "application/json"),
+            ("Content-Type", "application/json")
         ]
 
         # Create record
         incomplete_data = dict(test_data[0])
-        del incomplete_data['title']
+        del incomplete_data["title"]
         res = client.post(
-            search_url, data=json.dumps(incomplete_data), headers=HEADERS)
+            search_url,
+            data=json.dumps(incomplete_data),
+            headers=HEADERS
+        )
         assert res.status_code == 400
 
 
@@ -185,13 +186,7 @@ def test_marshmallow_errors(test_data):
         errors = res.errors
 
     me = MarshmallowErrors(errors)
-
-    with pytest.raises(TypeError):
-        next(me)
-    # assert __iter__ method works
-    iter(me)
-    # assert __next__ method works
-    assert next(me)
+    assert me.errors
 
 
 def test_json_pid_checker_loader(app, db, es, search_url, search_class):

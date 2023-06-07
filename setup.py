@@ -22,35 +22,32 @@ tests_require = [
     'invenio-indexer>=1.0.0',
     'invenio-config>=1.0.2',
     'pytest-invenio>=1.2.1',
-    'jsonref==0.2',
-    'jsonresolver==0.2.1',
+    'jsonref==1.0.1',
+    'mock>=4'
 ]
 
 invenio_search_version = '1.2.3,<1.3.0'
 
 extras_require = {
-    'elasticsearch2': [
-        'invenio-search[elasticsearch2]>={}'.format(invenio_search_version),
-    ],
-    'elasticsearch5': [
-        'invenio-search[elasticsearch5]>={}'.format(invenio_search_version),
-    ],
-    'elasticsearch6': [
-        'invenio-search[elasticsearch6]>={}'.format(invenio_search_version),
-    ],
     'elasticsearch7': [
-        'invenio-search[elasticsearch7]>={}'.format(invenio_search_version),
+        'invenio-search[elasticsearch7]>=2.1.0,<3.0.0'
+    ],
+    'opensearch1': [
+        'invenio-search[opensearch1]>=2.1.0,<3.0.0'
+    ],
+    'opensearch2': [
+        'invenio-search[opensearch2]>=2.1.0,<3.0.0'
     ],
     'citeproc': [
         'citeproc-py==0.3.0',
         'citeproc-py-styles==0.1.0',
     ],
     'datacite': [
-        'datacite>=1.0.1',
+        'datacite==1.0.1',
+        'urllib3>=1.21.1,<1.27'
     ],
     'docs': [
-        'Sphinx>=3',
-        'MarkupSafe==2.0.1'
+        'Sphinx>=3'
     ],
     'dublincore': [
         'dcxml>=0.1.0',
@@ -63,8 +60,11 @@ extras_require = {
 
 extras_require['all'] = []
 for name, reqs in extras_require.items():
-    if name[0] == ':' or name in ('elasticsearch2', 'elasticsearch5',
-                                  'elasticsearch6', 'elasticsearch7'):
+    if name[0] == ':' or name in (
+        'elasticsearch7',
+        'opensearch1',
+        'opensearch2'
+    ):
         continue
     extras_require['all'].extend(reqs)
 
@@ -73,19 +73,15 @@ setup_requires = [
 ]
 
 install_requires = [
-    'arrow>=0.12.1',
-    'attrs>=17.4.0',
     'bleach>=2.1.3',
     'ftfy>=4.4.3',
-    'werkzeug>=0.14.1,<2.0.0',
-    'invenio-base>=1.2.2',
-    'invenio-pidstore>=1.2.0',
-    'invenio-records==1.3.2',
-    'invenio-rest==1.1.3',
-    'invenio-indexer>=1.1.0',
-    'invenio-i18n>=1.2.0',
-    'python-dateutil>=2.4.2',
-    'jsonschema>=2.6.0,<3.0',
+    'invenio-base',
+    'invenio-pidstore>=1.2.1,<2.0.0',
+    'invenio-records>=2.0.0,<3.0.0',
+    'invenio-rest>=1.2.4,<2.0.0',
+    'invenio-indexer>=2.1.0,<3.0.0',
+    'invenio-i18n>=2.0.0,<3.0.0',
+    'importlib-metadata>=4.0.0,<5.0.0',
 ]
 
 packages = find_packages()

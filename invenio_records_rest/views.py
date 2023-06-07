@@ -15,14 +15,11 @@ import uuid
 from collections import defaultdict
 from functools import partial, wraps
 
-from elasticsearch import VERSION as ES_VERSION
-from elasticsearch.exceptions import RequestError
-from elasticsearch_dsl.query import Q
 from flask import Blueprint, abort, current_app, jsonify, make_response, \
     request, url_for
 from flask.views import MethodView
-from flask_babelex import gettext as _
 from invenio_db import db
+from invenio_i18n import gettext as _
 from invenio_indexer.api import RecordIndexer
 from invenio_pidstore import current_pidstore
 from invenio_pidstore.models import PersistentIdentifier
@@ -30,6 +27,7 @@ from invenio_records.api import Record
 from invenio_rest import ContentNegotiatedMethodView
 from invenio_rest.decorators import require_content_types
 from invenio_search import RecordsSearch
+from invenio_search.engine import dsl, search
 from jsonpatch import JsonPatchException, JsonPointerException
 from jsonschema.exceptions import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
@@ -48,8 +46,6 @@ from .links import default_links_factory
 from .proxies import current_records_rest
 from .query import es_search_factory
 from .utils import get_record_validation_errors, obj_or_import_string
-
-lt_es7 = ES_VERSION[0] < 7
 
 
 def elasticsearch_query_parsing_exception_handler(error):
@@ -91,7 +87,7 @@ def create_error_handlers(blueprint, error_handlers_registry=None):
         """Catch validation errors."""
         return JSONSchemaValidationError(error=error).get_response()
 
-    @blueprint.errorhandler(RequestError)
+    @blueprint.errorhandler(search.exceptions.RequestError)
     def elasticsearch_badrequest_error(error):
         """Catch errors of ElasticSearch."""
         handlers = current_app.config[
@@ -292,8 +288,6 @@ def create_url_rules(endpoint, list_route=None, item_route=None,
 
     if search_type:
         search_class_kwargs['doc_type'] = search_type
-    else:
-        search_type = search_class.Meta.doc_types
 
     if search_class_kwargs:
         search_class = partial(search_class, **search_class_kwargs)
@@ -356,7 +350,7 @@ def create_url_rules(endpoint, list_route=None, item_route=None,
             rule=list_route + '_suggest',
             view_func=suggest_view
         ))
-    if ES_VERSION[0] > 6 and search_as_you_type:
+    if search_as_you_type:
         search_as_you_type_view = SearchAsYouTypeResource.as_view(
             SearchAsYouTypeResource.view_name.format(endpoint),
             search_as_you_type=search_as_you_type,
@@ -629,8 +623,6 @@ class RecordsListResource(ContentNegotiatedMethodView):
         search_obj = self.search_class()
         search = search_obj.with_preference_param().params(version=True)
         search = search[pagination['from_idx']:pagination['to_idx']]
-        if not lt_es7:
-            search = search.extra(track_total_hits=True)
 
         search, qs_kwargs = self.search_factory(search)
         urlkwargs.update(qs_kwargs)
@@ -639,8 +631,7 @@ class RecordsListResource(ContentNegotiatedMethodView):
         search_result = search.execute()
 
         # Generate links for self/prev/next
-        total = search_result.hits.total if lt_es7 else \
-            search_result.hits.total['value']
+        total = search_result.hits.total["value"]
         endpoint = '.{0}_list'.format(
             current_records_rest.default_endpoint_prefixes[self.pid_type])
         urlkwargs.update(size=pagination['size'], _external=True)
@@ -691,7 +682,6 @@ class RecordsListResource(ContentNegotiatedMethodView):
         """
         if request.mimetype not in self.loaders:
             raise UnsupportedMediaRESTError(request.mimetype)
-
         data = self.loaders[request.mimetype]()
         if data is None:
             raise InvalidDataRESTError()
@@ -1004,7 +994,7 @@ class SearchAsYouTypeResource(MethodView):
             ])
 
         response = search_class.query(
-            Q(
+            dsl.Q(
                 {
                     "multi_match": {
                         "query": value,
@@ -1074,21 +1064,9 @@ class SuggestResource(MethodView):
         s = self.search_class()
         for field, val, opts in completions:
             source = opts.pop('_source', None)
-            if source is not None and ES_VERSION[0] >= 5:
-                s = s.source(source).suggest(field, val, **opts)
-            else:
-                s = s.suggest(field, val, **opts)
+            s = s.source(source).suggest(field, val, **opts)
 
-        if ES_VERSION[0] == 2:
-            # Execute search
-            response = s.execute_suggest().to_dict()
-            for field, _, _ in completions:
-                for resp in response[field]:
-                    for op in resp['options']:
-                        if 'payload' in op:
-                            op['_source'] = copy.deepcopy(op['payload'])
-        elif ES_VERSION[0] >= 5:
-            response = s.execute().to_dict()['suggest']
+        response = s.execute().to_dict()['suggest']
 
         result = dict()
         for field, val, opts in completions:

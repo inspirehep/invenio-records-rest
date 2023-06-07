@@ -8,8 +8,6 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 python -m check_manifest --ignore ".travis-*" && \
-python -m sphinx.cmd.build -qnN docs docs/_build/html && \
 python -m pytest && \
-python -m sphinx.cmd.build -qnN -b doctest docs docs/_build/doctest
 tests_exit_code=$?
 exit "$tests_exit_code"

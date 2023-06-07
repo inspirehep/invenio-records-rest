@@ -10,15 +10,14 @@ on:
     branches:
       - master
 env:
-  EXTRAS: elasticsearch7
+  EXTRAS: opensearch2
 
 jobs:
   Test:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ 3.6, 3.8 ]
-        requirements-level: [min, pypi]
+        python-version: [ 3.8 ]
     services:
       postgres:
         image: postgres:9.6
@@ -47,29 +46,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache Python
-        uses: actions/cache@master
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ matrix.requirements-level }}-${{ hashFiles('setup.py') }}
-
       - name: Prepare python env
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           pip install --upgrade pip setuptools py
-          pip install twine wheel coveralls requirements-builder
-
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          requirements-builder -e ${{ env.EXTRAS }} --level=${{ matrix.requirements-level }} setup.py > .requirements.txt
-          pip install -r .requirements.txt
-          rm .requirements.txt
+          pip install twine wheel coveralls babel
 
       - name: Install app
         run: |
-          pip install .[all,${{ env.EXTRAS }}]
+          pip install ".[all,${{ env.EXTRAS }}]"
 
       - name: Show python dependencies and clean
         run: pip freeze
