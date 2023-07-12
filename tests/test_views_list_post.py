@@ -116,11 +116,11 @@ def test_invalid_create(app, db, es, test_data, search_url, content_type):
                 headers=HEADERS)
 
 
-@mock.patch('invenio_records.api.Record.validate', _mock_validate_fail)
+@mock.patch('invenio_records.api.Record.create', _mock_validate_fail)
 @pytest.mark.parametrize('content_type', [
     'application/json', 'application/json;charset=utf-8'
 ])
-def test_validation_error(app, db, test_data, search_url, content_type):
+def test_validation_error(app, db, es, test_data, search_url, content_type):
     """Test when record validation fail."""
     with app.test_client() as client:
         HEADERS = [
@@ -137,7 +137,7 @@ def test_validation_error(app, db, test_data, search_url, content_type):
 @pytest.mark.parametrize('content_type', [
     'application/json', 'application/json;charset=utf-8'
 ])
-def test_jsonschema_validation_error(app, db, search_url, content_type):
+def test_jsonschema_validation_error(app, db, es, search_url, content_type):
     """Test when jsonschema validation fails."""
     record = {
         'title': 1,

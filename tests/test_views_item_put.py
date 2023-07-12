@@ -153,7 +153,7 @@ def test_invalid_put(app, es, test_records, charset, search_url):
         assert res.status_code == 412
 
 
-@mock.patch("invenio_records.api.Record.validate", _mock_validate_fail)
+@mock.patch("invenio_records.api.Record.commit", _mock_validate_fail)
 @mock.patch(
     "invenio_records_rest.views.get_record_validation_errors",
     return_value=[{'path': ['authors'], 'message': "it's wrong"}]
@@ -163,6 +163,7 @@ def test_invalid_put(app, es, test_records, charset, search_url):
 )
 def test_validation_error(
     mock_validation_errors,
+    es,
     app,
     test_records,
     content_type

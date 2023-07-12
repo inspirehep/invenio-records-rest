@@ -11,7 +11,7 @@
 from __future__ import absolute_import, print_function
 
 import pytest
-from elasticsearch_dsl import Search
+from invenio_search.engine import dsl
 
 from invenio_records_rest.sorter import default_sorter_factory, eval_field, \
     geolocation_sort, parse_sort_field, reverse_order
@@ -97,46 +97,46 @@ def test_default_sorter_factory(app):
 
     # Sort
     with app.test_request_context("?sort=myfield"):
-        query, urlargs = default_sorter_factory(Search(), 'myindex')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'myindex')
         assert query.to_dict()['sort'] == \
             [{'field1': {'order': 'asc'}}, {'field2': {'order': 'desc'}}]
         assert urlargs['sort'] == 'myfield'
 
     # Reverse sort
     with app.test_request_context("?sort=-myfield"):
-        query, urlargs = default_sorter_factory(Search(), 'myindex')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'myindex')
         assert query.to_dict()['sort'] == \
             [{'field1': {'order': 'desc'}}, {'field2': {'order': 'asc'}}]
         assert urlargs['sort'] == '-myfield'
 
     # Invalid sort key
     with app.test_request_context("?sort=invalid"):
-        query, urlargs = default_sorter_factory(Search(), 'myindex')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'myindex')
         assert 'sort' not in query.to_dict()
         assert urlargs == {}
 
     # Default sort without query
     with app.test_request_context("/?q="):
-        query, urlargs = default_sorter_factory(Search(), 'myindex')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'myindex')
         assert query.to_dict()['sort'] == \
             [{'field1': {'order': 'asc'}}, {'field2': {'order': 'desc'}}]
         assert urlargs == dict(sort='myfield')
 
     # Default sort with query
     with app.test_request_context("/?q=test"):
-        query, urlargs = default_sorter_factory(Search(), 'myindex')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'myindex')
         assert query.to_dict()['sort'] == \
             [{'field1': {'order': 'desc'}}, {'field2': {'order': 'asc'}}]
         assert urlargs == dict(sort='-myfield')
 
     # Default sort with query that includes unicodes
     with app.test_request_context("/?q=tést"):
-        query, urlargs = default_sorter_factory(Search(), 'myindex')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'myindex')
         assert query.to_dict()['sort'] == \
             [{'field1': {'order': 'desc'}}, {'field2': {'order': 'asc'}}]
         assert urlargs == dict(sort='-myfield')
 
     # Default sort another index
     with app.test_request_context("/?q=test"):
-        query, urlargs = default_sorter_factory(Search(), 'aidx')
+        query, urlargs = default_sorter_factory(dsl.Search(), 'aidx')
         assert 'sort' not in query.to_dict()

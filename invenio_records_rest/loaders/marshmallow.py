@@ -52,30 +52,16 @@ class MarshmallowErrors(RESTValidationError):
 
     def __init__(self, errors):
         """Store marshmallow errors."""
-        self._it = None
         self.errors = _flatten_marshmallow_errors(errors)
-        super(MarshmallowErrors, self).__init__()
+        super().__init__()
 
     def __str__(self):
         """Print exception with errors."""
         return "{base}. Encountered errors: {errors}".format(
-            base=super(RESTValidationError, self).__str__(),
-            errors=self.errors)
+            base=super().__str__(), errors=self.errors
+        )
 
-    def __iter__(self):
-        """Get iterator."""
-        self._it = iter(self.errors)
-        return self
-
-    def next(self):
-        """Python 2.7 compatibility."""
-        return self.__next__()  # pragma: no cover
-
-    def __next__(self):
-        """Get next file item."""
-        return next(self._it)
-
-    def get_body(self, environ=None):
+    def get_body(self, environ=None, scope=None):
         """Get the request body."""
         body = dict(
             status=self.code,
@@ -83,7 +69,7 @@ class MarshmallowErrors(RESTValidationError):
         )
 
         if self.errors:
-            body['errors'] = self.errors
+            body["errors"] = self.errors
 
         return json.dumps(body)
 
