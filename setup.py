@@ -18,12 +18,13 @@ history = open('CHANGES.rst').read()
 
 tests_require = [
     'Flask-Login>=0.3.2',
-    'invenio-db[all]>=1.0.2',
+    'invenio-db[mysql,postgresql]>=1.0.9,<2.0.0',
     'invenio-indexer>=1.0.0',
     'invenio-config>=1.0.2',
     'pytest-invenio>=1.2.1',
     'jsonref==1.0.1',
-    'mock>=4'
+    'mock>=4',
+    'SQLAlchemy-Continuum==1.3.15'
 ]
 
 invenio_search_version = '1.2.3,<1.3.0'
@@ -82,7 +83,6 @@ install_requires = [
     'invenio-indexer>=2.1.0,<3.0.0',
     'invenio-i18n>=2.0.0,<3.0.0',
     'importlib-metadata>=4.0.0,<5.0.0',
-    'SQLAlchemy==1.3.13'
 ]
 
 packages = find_packages()
