@@ -193,7 +193,7 @@ def app(request, search_class):
     shutil.rmtree(instance_path)
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def db(app):
     """Database fixture."""
     if (
