@@ -152,6 +152,7 @@ def create_blueprint(endpoints):
     for endpoint, options in endpoints.items():
         error_handlers = options.pop('error_handlers', {})
         for rule in create_url_rules(endpoint, **options):
+            rule['merge_slashes'] = False
             for exc_or_code, handler in error_handlers.items():
                 view_name = rule['view_func'].__name__
                 error_handlers_registry[exc_or_code][view_name] = handler
