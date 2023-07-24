@@ -82,6 +82,7 @@ install_requires = [
     'invenio-indexer>=2.1.0,<3.0.0',
     'invenio-i18n>=2.0.0,<3.0.0',
     'importlib-metadata>=4.0.0,<5.0.0',
+    'SQLAlchemy==1.3.13'
 ]
 
 packages = find_packages()
