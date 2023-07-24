@@ -47,14 +47,14 @@ def test_custom_endpoints_app(app):
 
 
 @pytest.mark.parametrize(
-    "test_custom_endpoints_app",
+    "app",
     [
         dict(
             # Disable all endpoints from config. The test will create the endpoint.
             records_rest_endpoints=dict(),
         )
     ],
-    indirect=["test_custom_endpoints_app"],
+    indirect=["app"],
 )
 def test_get_record(app, test_records):
     """Test the creation of a custom endpoint using RecordResource."""

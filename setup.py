@@ -85,6 +85,7 @@ install_requires = [
     'SQLAlchemy==1.4',
     'sqlalchemy-utils==0.38.3',
     "SQLAlchemy-Continuum @ git+https://github.com/inspirehep/sqlalchemy-continuum.git"
+    "Flask-SQLAlchemy @ git+https://github.com/inspirehep/flask-sqlalchemy.git@7a998a522642a9fb89445ee6b790f05986bde481"
 ]
 
 packages = find_packages()
