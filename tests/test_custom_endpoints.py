@@ -54,9 +54,9 @@ def test_custom_endpoints_app(app):
             records_rest_endpoints=dict(),
         )
     ],
-    indirect=["app"],
+    indirect=["test_custom_endpoints_app"],
 )
-def test_get_record(test_custom_endpoints_app, test_records):
+def test_get_record(app, test_records):
     """Test the creation of a custom endpoint using RecordResource."""
     test_records = test_records
     """Test creation of a RecordResource view."""
