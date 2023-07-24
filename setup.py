@@ -83,7 +83,8 @@ install_requires = [
     'invenio-i18n>=2.0.0,<3.0.0',
     'importlib-metadata>=4.0.0,<5.0.0',
     'SQLAlchemy==1.4',
-    'sqlalchemy-utils==0.38.3'
+    'sqlalchemy-utils==0.38.3',
+    "SQLAlchemy-Continuum @ git+https://github.com/inspirehep/sqlalchemy-continuum.git"
 ]
 
 packages = find_packages()
