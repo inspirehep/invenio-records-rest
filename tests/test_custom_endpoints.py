@@ -46,50 +46,55 @@ def test_custom_endpoints_app(app):
     return app
 
 
-@pytest.mark.parametrize('app', [dict(
-    # Disable all endpoints from config. The test will create the endpoint.
-    records_rest_endpoints=dict(),
-)], indirect=['app'])
+@pytest.mark.parametrize(
+    "test_custom_endpoints_app",
+    [
+        dict(
+            # Disable all endpoints from config. The test will create the endpoint.
+            records_rest_endpoints=dict(),
+        )
+    ],
+    indirect=["app"],
+)
 def test_get_record(test_custom_endpoints_app, test_records):
     """Test the creation of a custom endpoint using RecordResource."""
     test_records = test_records
     """Test creation of a RecordResource view."""
     blueprint = Blueprint(
-        'test_invenio_records_rest',
+        "test_invenio_records_rest",
         __name__,
     )
 
     json_v1 = JSONSerializer(RecordSchemaJSONV1)
 
     blueprint.add_url_rule(
-        '/records/<pid(recid):pid_value>',
+        "/records/<pid(recid):pid_value>",
         view_func=RecordResource.as_view(
-            'recid_item',
+            "recid_item",
             serializers={
-                'application/json': record_responsify(
-                    json_v1, 'application/json'
-                )
+                "application/json": record_responsify(json_v1, "application/json")
             },
-            default_media_type='application/json',
+            default_media_type="application/json",
             read_permission_factory=allow_all,
             update_permission_factory=allow_all,
             delete_permission_factory=allow_all,
-        )
+        ),
     )
 
     test_custom_endpoints_app.register_blueprint(blueprint)
 
     with test_custom_endpoints_app.app_context():
         pid, record = test_records[0]
-        url = url_for('test_invenio_records_rest.recid_item',
-                      pid_value=pid.pid_value, user=1)
+        url = url_for(
+            "test_invenio_records_rest.recid_item", pid_value=pid.pid_value, user=1
+        )
         with test_custom_endpoints_app.test_client() as client:
             res = client.get(url)
             assert res.status_code == 200
 
             # Check metadata
             data = get_json(res)
-            assert record == data['metadata']
+            assert record == data["metadata"]
 
 
 @pytest.mark.parametrize('test_custom_endpoints_app', [dict(
