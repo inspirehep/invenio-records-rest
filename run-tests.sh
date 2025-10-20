@@ -7,7 +7,4 @@
 # Invenio is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 
-python -m check_manifest --ignore ".travis-*" && \
-python -m pytest && \
-tests_exit_code=$?
-exit "$tests_exit_code"
+python -m pytest tests/

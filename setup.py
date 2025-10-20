@@ -14,7 +14,6 @@ import os
 from setuptools import find_packages, setup
 
 readme = open('README.rst').read()
-history = open('CHANGES.rst').read()
 
 tests_require = [
     'Flask-Login>=0.3.2',
@@ -46,9 +45,6 @@ extras_require = {
     'datacite': [
         'datacite==1.0.1',
         'urllib3>=1.21.1,<1.27'
-    ],
-    'docs': [
-        'Sphinx>=3'
     ],
     'dublincore': [
         'dcxml>=0.1.0',
@@ -98,7 +94,7 @@ setup(
     name='invenio-records-rest',
     version=version,
     description=__doc__,
-    long_description=readme + '\n\n' + history,
+    long_description=readme,
     keywords='invenio api',
     license='MIT',
     author='CERN',
