@@ -195,8 +195,12 @@ class JSONSchemaValidationError(RESTValidationError):
         """Initialize exception."""
         super(RESTValidationError, self).__init__(**kwargs)
         self.errors = kwargs.get('errors')
-        self.description = 'Validation error: {0}.'.format(
-            error.message if error else '')
+        if self.errors:
+            self.description = f"ValidationError: {self.errors}"
+        elif error and hasattr(error, "message"):
+            self.description = f"ValidationError: {error.message}"
+        else:
+            self.description = "ValidationError"
 
     def get_errors(self):
         """Get errors.

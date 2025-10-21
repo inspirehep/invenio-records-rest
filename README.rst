@@ -23,6 +23,19 @@
 
 REST API for Invenio-Records.
 
-Further documentation is available on
-https://invenio-records-rest.readthedocs.io/.
+To run the project:
 
+Create a virtual environment and install the dependencies:
+
+.. code-block:: console
+
+    $ pyenv virtualenv records-rest
+    $ pyenv activate records-rest
+    $ pip install -e ".[all,opensearch2]"
+
+and run the tests
+
+.. code-block:: console
+
+    $ docker-compose up -d
+    $ ./run-tests.sh

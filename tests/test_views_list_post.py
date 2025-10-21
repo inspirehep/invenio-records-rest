@@ -159,3 +159,4 @@ def test_jsonschema_validation_error(app, db, es, search_url, content_type):
         assert res.status_code == 400
         data = get_json(res)
         assert data['message']
+        assert "ValidationError: 1 is not of type 'string'" == data["message"]
