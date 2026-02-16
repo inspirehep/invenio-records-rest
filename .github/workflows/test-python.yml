@@ -8,19 +8,20 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:9.6
+        image: postgres:14.1
         env:
-          POSTGRES_USER: inspirehep
-          POSTGRES_PASSWORD: inspirehep
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: inspirehep
         ports:
           - 5432:5432
       elasticsearch:
-        image: elasticsearch:7.10.1
+        image: registry.cern.ch/cern-sis/inspirehep/opensearch:3.2.0
         env:
           bootstrap.memory_lock: true
           ES_JAVA_OPTS: -Xms1024m -Xmx1024m
           discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: true
         ports:
           - 9200:9200
     steps:
@@ -36,9 +37,11 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          pip install --upgrade pip setuptools py
+          pip install --upgrade pip py
+          pip install "setuptools<81"
           pip install twine wheel coveralls babel
-          pip install ".[all,opensearch2]"
+          pip install "invenio-search[opensearch3] @ git+https://github.com/inspirehep/invenio-search.git@master"
+          pip install -e ".[all]"
 
       - name: Show python dependencies
         run: pip freeze

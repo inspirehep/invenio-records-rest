@@ -38,6 +38,9 @@ extras_require = {
     'opensearch2': [
         'invenio-search[opensearch2]>=2.1.0,<3.0.0'
     ],
+    'opensearch3': [
+        'invenio-search[opensearch3]>=2.1.0,<3.0.0'
+    ],
     'citeproc': [
         'citeproc-py==0.3.0',
         'citeproc-py-styles==0.1.0',
@@ -60,7 +63,8 @@ for name, reqs in extras_require.items():
     if name[0] == ':' or name in (
         'elasticsearch7',
         'opensearch1',
-        'opensearch2'
+        'opensearch2',
+        'opensearch3'
     ):
         continue
     extras_require['all'].extend(reqs)

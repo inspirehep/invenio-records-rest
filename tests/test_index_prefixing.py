@@ -19,13 +19,20 @@ def test_index_creation(app, prefixed_es):
     """Sanity check for index creation."""
     suffix = current_search.current_suffix
     es_aliases = prefixed_es.indices.get_alias()
+    index_prefix = "test-invenio-records-rest"
+    user_indices = {
+        index_name for index_name in es_aliases.keys()
+        if index_name.startswith(index_prefix)
+    }
     # Keys are the indices
-    assert set(es_aliases.keys()) == {
+    assert user_indices == {
         "test-invenio-records-rest-testrecord{}".format(suffix),
     }
 
     aliases = set()
-    for index_info in es_aliases.values():
+    for index_name, index_info in es_aliases.items():
+        if not index_name.startswith(index_prefix):
+            continue
         aliases |= set(index_info.get("aliases", {}).keys())
     assert aliases == {
         "test-invenio-records-rest",
@@ -56,7 +63,6 @@ def test_api_views(app, prefixed_es, db, test_data, search_url, search_class):
         assert len(result["hits"]["hits"]) == 1
         record_doc = result["hits"]["hits"][0]
         assert record_doc["_index"] == "test-invenio-records-rest-testrecord" + suffix  # noqa:E501
-        assert record_doc["_type"] == "_doc"
 
         # Fetch the record
         assert client.get(record_url(recid)).status_code == 200
