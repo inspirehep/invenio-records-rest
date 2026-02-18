@@ -31,7 +31,7 @@ Create a virtual environment and install the dependencies:
 
     $ pyenv virtualenv records-rest
     $ pyenv activate records-rest
-    $ pip install -e ".[all,opensearch2]"
+    $ pip install -r requirements-devel.txt
 
 and run the tests
 
